@@ -1,7 +1,17 @@
 #include <Adafruit_NeoPixel.h>
 #include <Keypad.h>
+#include <SoftwareSerial.h>
+
+using namespace std;
+
+// P2P Variaveis
+#define TxPin 2
+#define RxPin 3
+
+char c;
 
 
+SoftwareSerial MySerial = SoftwareSerial(RxPin, TxPin);
 
 
 char key;
@@ -53,6 +63,50 @@ byte colPins[3] = {6, 5, 4};
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
 
+
+
+// FUNÇÕES DE COMUNICAÇÃO
+
+
+void receiver(){
+    delay(1000);
+    if(MySerial.available() > 0) {
+            recData = "";
+            while(MySerial.available()) {
+                c = MySerial.read();
+                recData += c;
+            }
+            filter_string();
+            Serial.println("SS Data received = " + recData);
+        }
+  
+
+}
+
+
+void check_sender(String data){
+	receiver();
+  	if(recData == data) transmitting("OOOOOOOOOOOO");
+  	else transmitting(data);
+  
+}
+
+
+void check_receiver(){
+	transmitting(recData);
+  delay(4000);
+  	receiver();
+  for(int i = 0; i<8; i++){
+  
+    if(recData[i] == 'O'){ 
+      
+      
+      Serial.println("RECEBIMENTO OK");
+      }
+    else receiver();
+  }
+}
+// FUNÇÕES GERAIS   
 
 bool jogar(){
   Serial.print(key);
@@ -133,59 +187,59 @@ int verifica_linhas(int linha){
 }
 
 int verifica_colunas(int coluna){
-	int sequences = 0;
-  Serial.println("COLUNAS");
-  for(int i = 0; i<3;i++){
-    Serial.print(i);
-    Serial.print(" | ");
-    Serial.println(coluna);
-    if(game[i][coluna] == id) sequences++;
-    
-  }
-  Serial.println(sequences);
-  return sequences;
+    int sequences = 0;
+    Serial.println("COLUNAS");
+    for(int i = 0; i<3;i++){
+        Serial.print(i);
+        Serial.print(" | ");
+        Serial.println(coluna);
+        if(game[i][coluna] == id) sequences++;
+        
+    }
+    Serial.println(sequences);
+    return sequences;
 }
 
 int verifica_diagonal_esquerda_direita(){
-	int sequences = 0;
-  	int coluna = 0;
-  	int linha = 0;
-  Serial.println("DED");
-  while(linha != 3){
-    Serial.print(linha);
-    Serial.print(" | ");
-    Serial.println(coluna);
-    if(game[linha][coluna] == id) sequences++;
-    
-    coluna++;
-    linha++;
-  }
- 		
-  Serial.println(sequences);
-  return sequences;
+    int sequences = 0;
+    int coluna = 0;
+    int linha = 0;
+    Serial.println("DED");
+    while(linha != 3){
+        Serial.print(linha);
+        Serial.print(" | ");
+        Serial.println(coluna);
+        if(game[linha][coluna] == id) sequences++;
+        
+        coluna++;
+        linha++;
+    }
+            
+    Serial.println(sequences);
+    return sequences;
 
 
 }
 
 int verifica_diagonal_direita_esquerda(){
-	int sequences = 0;
-  	int coluna = 2;
-  	int linha = 0;
-  
-  Serial.println("DDE");
-  while(linha != 3){
+    int sequences = 0;
+    int coluna = 2;
+    int linha = 0;
+    
+    Serial.println("DDE");
+    while(linha != 3){
 
-    Serial.print(linha);
-    Serial.print(" | ");
-    Serial.println(coluna);
+        Serial.print(linha);
+        Serial.print(" | ");
+        Serial.println(coluna);
 
-    if(game[linha][coluna] == id) sequences++;
-    coluna--;
-    linha++;
-  }
- Serial.print("SEQUENCIA: ");
-  Serial.println(sequences);
-  return sequences;
+        if(game[linha][coluna] == id) sequences++;
+        coluna--;
+        linha++;
+    }
+    Serial.print("SEQUENCIA: ");
+    Serial.println(sequences);
+    return sequences;
 }
 
 
@@ -245,7 +299,6 @@ void resetar_partida(){
                 game[i][j] = 0;
             }
         }
-        
     }
 }
 
@@ -253,16 +306,21 @@ void resetar_partida(){
 // STATE MACHINE FUNCTIONS
 
 void ocioso(){
+
     if(key != NO_KEY) STATE = INICIO;
     delay(500);
+
 }
 
 
 void inicio(){
+
     if(id == 1){ 
+
         int start = random(1,2);
         if (start == 1) STATE = VEZ1;
         else STATE = VEZ2; 
+
     }else{
         // wait receive state
     }
@@ -325,30 +383,30 @@ void empate_state(){
 }
 void brain(){
   
-  switch(STATE){
-  
-    case OCIOSO:
-        ocioso();
-        break;
-    case INICIO:
-        inicio();
-        break;
-    case VEZ1:
-        vez1();
-        break;
-  	case VITORIA1:
-        vitoria1();
-        break;
-  	case VEZ2:
-    	vez2();
-        break;
-  	case VITORIA2:
-        vitoria2();
-        break;
-    case EMPATE:
-        empate_state();
-    	break;
-  }
+    switch(STATE){
+    
+        case OCIOSO:
+            ocioso();
+            break;
+        case INICIO:
+            inicio();
+            break;
+        case VEZ1:
+            vez1();
+            break;
+        case VITORIA1:
+            vitoria1();
+            break;
+        case VEZ2:
+            vez2();
+            break;
+        case VITORIA2:
+            vitoria2();
+            break;
+        case EMPATE:
+            empate_state();
+            break;
+    }
   
 
 }
@@ -357,19 +415,24 @@ void brain(){
   
   
 void setup(){
-  Serial.begin(9600);
- display1.begin();
+    Serial.begin(9600);
+    pinMode(TxPin, OUTPUT);
+    pinMode(RxPin, INPUT);
+
+    MySerial.begin(9600);
+    Serial.begin(9600);
+    display1.begin();
 }
 
 void loop(){
 
-  Serial.print("ESTADO: ");
-  Serial.println(STATE);
-  key = keypad.getKey();
- 
-  brain();
-  display1.show();
+    Serial.print("ESTADO: ");
+    Serial.println(STATE);
+    key = keypad.getKey();
+    
+    brain();
+    display1.show();
 
-  delay(500);
+    delay(500);
   
 }
