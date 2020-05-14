@@ -20,8 +20,8 @@ int length_game = 9;
 int id = 2; // ID do arduino
 
 // CORES
-int rl = 255; int gl = 0; int bl = 0; // cor local
-int ro = 0; int go = 255; int bo = 0; // cor adversario
+int r1 = 255; int g1 = 0; int b1 = 0; // cor player 1
+int r2 = 0; int g2 = 255; int b2 = 0; // cor player 2
 
 // BARRA DE LED
 Adafruit_NeoPixel display1 = Adafruit_NeoPixel(length_game, display_pin, NEO_GRB + NEO_KHZ800);
@@ -105,108 +105,140 @@ void receiver(){
 
 // FUNÇÕES GERAIS   
 bool jogar(){
-  Serial.print(key);
+    Serial.print(key);
 
-  switch(key){
-        case '1':
-            display1.setPixelColor(0, display1.Color(rl, gl, bl));
+    int red; int green; int blue;
+    if(STATE == VEZ1){
+        jogador = 1;
+        red = r1;
+        green = g1;
+        blue = b1;
+    }else if (STATE == VEZ2){
+        jogador = 2;
+        red = r2;
+        green = g2;
+        blue = b2;
 
-            if (game[0][0] == 0) {
-                game[0][0] = id;
-                return true;
-            }
 
-            return false;
-            break;
+    }
 
-        case '2':
-            display1.setPixelColor(1, display1.Color(rl, gl, bl));
-        
-            if (game[0][0] == 0) {
-                game[0][0] = id;
-                return true;
-            }
+    switch(key){
+            case '1':               
+                if (game[0][0] == 0) {
 
-            return false;
-            break;
-        
-        case '3':
-            display1.setPixelColor(2, display1.Color(rl, gl, bl));
+                    display1.setPixelColor(0, display1.Color(red, green, blue));
+
+                    game[0][0] = jogador;
+                    return true;
+                }
+
+                return false;
+                break;
+
+            case '2':
+
+                if (game[0][0] == 0) {
+                    game[0][0] = jogador;
+
+                    display1.setPixelColor(1, display1.Color(red, green, blue));
             
-            if (game[0][1] == 0) {
-                game[0][0] = id;
-                return true;
-            }
+                    return true;
+                }
 
-            return false;
-            break;
+                return false;
+                break;
+            
+            case '3':
+                                
+                if (game[0][1] == 0) {
+                    game[0][0] = jogador;
 
-        case '4':
-            display1.setPixelColor(3, display1.Color(rl, gl, bl));
+                    display1.setPixelColor(2, display1.Color(red, green, blue));
 
-            if (game[0][2] == 0) {
-                game[0][1] = id;
-                return true;
-            }
+                    return true;
+                }
 
-            return false;
-            break;
+                return false;
+                break;
 
-        case '5':
-            display1.setPixelColor(4, display1.Color(rl, gl, bl));
+            case '4':
+                
+                if (game[0][2] == 0) {
+                    game[0][1] = jogador;
 
-            if (game[1][1] == 0) {
-                game[1][1] = id;
-                return true;
-            }
+                    display1.setPixelColor(3, display1.Color(red, green, blue));
 
-            return false;
-            break;
+                    return true;
+                }
 
-        case '6':
-            display1.setPixelColor(5, display1.Color(rl, gl, bl));
+                return false;
+                break;
 
-            if(game[0][2] == 0) {
-                game[0][1] = id;
-                return true;
-            }
+            case '5':
+               
+                if (game[1][1] == 0) {
+                    game[1][1] = jogador;
 
-            return false;
-            break;
+                    display1.setPixelColor(4, display1.Color(red, green, blue));
 
-        case '7':
-            display1.setPixelColor(6, display1.Color(rl, gl, bl));
+                    return true;
+                }
 
-            if (game[2][0] == 0) {
-                game[2][0] = id;
-                return true;
-            }
+                return false;
+                break;
 
-            return false;
-            break;
+            case '6':
+                
+                if (game[0][2] == 0) {
+                    game[0][1] = jogador;
 
-        case '8':
-            display1.setPixelColor(7, display1.Color(rl, gl, bl));
+                    display1.setPixelColor(5, display1.Color(red, green, blue));
 
-            if (game[2][1] == 0) {
-                game[2][1] = id;
-                return true;
-            }
+                    return true;
+                }
 
-            return false;
-            break;
+                return false;
+                break;
 
-        case '9':
-            display1.setPixelColor(8, display1.Color(rl, gl, bl));
+            case '7':
+              
+                if (game[2][0] == 0) {
+                    game[2][0] = jogador;
 
-            if (game[0][2] == 0) {
-                game[0][1] = id;
-                return true;
-            }
+                    display1.setPixelColor(6, display1.Color(red, green, blue));
 
-            return false;
-            break;  
-  }
+                    return true;
+                }
+
+                return false;
+                break;
+
+            case '8':
+               
+                if (game[2][1] == 0) {
+                    game[2][1] = jogador;
+
+                    display1.setPixelColor(7, display1.Color(red, green, blue));
+
+                    return true;
+                }
+
+                return false;
+                break;
+
+            case '9':
+                
+                if (game[2][2] == 0) {
+                    game[2][2] = jogador;
+
+                    display1.setPixelColor(8, display1.Color(red, green, blue));
+                    
+                    return true;
+                }
+
+                return false;
+                break;  
+    }
 }
 
 void switch_vez(){
@@ -383,7 +415,7 @@ void resetar_partida(){
 void ocioso(){
     if (key != NO_KEY && id == 1) {
         if (id == 1) { 
-            int start = random(1, 2);
+            int start = random(1, 3);
             
             if (start == 1) {
                 transmitting("V:01");
@@ -429,7 +461,10 @@ void vez1(){
                 Serial.println("JOGADA INVALIDA");
             }
         }
-    } 
+    } else if (id == 2){
+
+        jogar();
+    }
     delay(500);
 }
 
