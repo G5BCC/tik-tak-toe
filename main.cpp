@@ -1,16 +1,24 @@
 #include <Adafruit_NeoPixel.h>
 #include <Keypad.h>
 
+
+
+
 char key;
 int display_pin = 13;
 int length_game = 9;
-int teste_pixel = 0;
 
-int id = 1;
 
+int id = 1; // ID do arduino
+
+// CORES
 int rl = 255; int gl = 0; int bl = 0; // cor local
 int ro = 0; int go = 255; int bo = 0; // cor adversario
 
+// BARRA DE LED
+Adafruit_NeoPixel display1 = Adafruit_NeoPixel(length_game, display_pin, NEO_GRB + NEO_KHZ800);
+
+// ESTADOS
 enum {
 	OCIOSO,
   	INICIO,
@@ -24,13 +32,11 @@ enum {
 } STATE = OCIOSO;
 
 
-
-Adafruit_NeoPixel display1 = Adafruit_NeoPixel(length_game, display_pin, NEO_GRB + NEO_KHZ800);
-
+// TABULEIRO
 int game[3][3] = {
-  {2,2,2},
-  {2,2,2},
-  {2,2,0}
+  {0,0,0},
+  {0,0,0},
+  {0,0,0}
 };
 
 
@@ -41,64 +47,65 @@ char keys[3][3] = {
 };
 
 
-byte rowPins[3] = {9, 8, 7}; //connect to the row pinouts of the keypad
-byte colPins[3] = {6, 5, 4}; //connect to the column pinouts of the keypad
+// VARIAVEIS DO TECLADO
+byte rowPins[3] = {9, 8, 7}; 
+byte colPins[3] = {6, 5, 4}; 
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
+
+
 bool jogar(){
-	
-  
   Serial.print(key);
   switch(key){
    
-  	case '1':
-    	display1.setPixelColor(0, display1.Color(rl, gl, bl));
-    if(game[0][0] == 0) {game[0][0] = id; return true;}
-    	return false;
+        case '1':
+            display1.setPixelColor(0, display1.Color(rl, gl, bl));
+        if(game[0][0] == 0) {game[0][0] = id; return true;}
+            return false;
+        
+            break;
+        case '2':
+            display1.setPixelColor(1, display1.Color(rl, gl, bl));
+        
+            if(game[0][0] == 0) {game[0][0] = id; return true;}
+            return false;
+            break;
+        
+        case '3':
+            display1.setPixelColor(2, display1.Color(rl, gl, bl));
+            if(game[0][1] == 0) {game[0][0] = id; return true;}
+            return false;
+            break;
+        case '4':
+            display1.setPixelColor(3, display1.Color(rl, gl, bl));
+            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            return false;
+            break;
+        case '5':
+            display1.setPixelColor(4, display1.Color(rl, gl, bl));
+            if(game[1][1] == 0) {game[1][1] = id; return true;}
+            return false;
+            break;
+        case '6':
+            display1.setPixelColor(5, display1.Color(rl, gl, bl));
+            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            break;
+        case '7':
+            display1.setPixelColor(6, display1.Color(rl, gl, bl));
+            if(game[2][0] == 0) {game[2][0] = id; return true;}
+            return false;
+            break;
+        case '8':
+            display1.setPixelColor(7, display1.Color(rl, gl, bl));
+            if(game[2][1] == 0) {game[2][1] = id; return true;}
+            return false;
+            break;
+        case '9':
+            display1.setPixelColor(8, display1.Color(rl, gl, bl));
+            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            return false;
+            break;
     
-    	break;
-    case '2':
-    	display1.setPixelColor(1, display1.Color(rl, gl, bl));
-    
-    	if(game[0][0] == 0) {game[0][0] = id; return true;}
-    	return false;
-    	break;
-    
-    case '3':
-    	display1.setPixelColor(2, display1.Color(rl, gl, bl));
-    	if(game[0][1] == 0) {game[0][0] = id; return true;}
-    	return false;
-    	break;
-    case '4':
-    	display1.setPixelColor(3, display1.Color(rl, gl, bl));
-    	if(game[0][2] == 0) {game[0][1] = id; return true;}
-    	return false;
-    	break;
-    case '5':
-    	display1.setPixelColor(4, display1.Color(rl, gl, bl));
-    	if(game[1][1] == 0) {game[1][1] = id; return true;}
-    	return false;
-    	break;
-    case '6':
-    	display1.setPixelColor(5, display1.Color(rl, gl, bl));
-    	if(game[0][2] == 0) {game[0][1] = id; return true;}
-    	break;
-    case '7':
-    	display1.setPixelColor(6, display1.Color(rl, gl, bl));
-    	if(game[2][0] == 0) {game[2][0] = id; return true;}
-    	return false;
-    	break;
-    case '8':
-    	display1.setPixelColor(7, display1.Color(rl, gl, bl));
-    	if(game[2][1] == 0) {game[2][1] = id; return true;}
-    	return false;
-    	break;
-    case '9':
-    	display1.setPixelColor(8, display1.Color(rl, gl, bl));
-    	if(game[0][2] == 0) {game[0][1] = id; return true;}
-    	return false;
-    	break;
-  
     	
   }
 }
@@ -106,41 +113,34 @@ bool jogar(){
 
 
 void switch_vez(){
-
   if(id == 1) STATE = VEZ2;
   else STATE = VEZ1;
- 
 }
 
 
 int verifica_linhas(int linha){
-	int sequences = 0;
-  Serial.println("LINHAS");
-  for(int i = 0; i<3;i++){
-  	Serial.print(linha);
-    Serial.print(" | ");
-    Serial.println(i);
-    if(game[linha][i] == id){
-      
-      	
-    	sequences++;
+    int sequences = 0;
+    Serial.println("LINHAS");
+    for(int i = 0; i<3;i++){
+        Serial.print(linha);
+        Serial.print(" | ");
+        Serial.println(i);
+        if(game[linha][i] == id) sequences++;
+        
     }
-  }
-  Serial.println(sequences);
-  return sequences;
+    Serial.println(sequences);
+    return sequences;
 }
 
 int verifica_colunas(int coluna){
 	int sequences = 0;
   Serial.println("COLUNAS");
   for(int i = 0; i<3;i++){
-  	
     Serial.print(i);
     Serial.print(" | ");
     Serial.println(coluna);
-    if(game[i][coluna] == id){
-    	sequences++;
-    }
+    if(game[i][coluna] == id) sequences++;
+    
   }
   Serial.println(sequences);
   return sequences;
@@ -152,14 +152,10 @@ int verifica_diagonal_esquerda_direita(){
   	int linha = 0;
   Serial.println("DED");
   while(linha != 3){
-    
     Serial.print(linha);
     Serial.print(" | ");
     Serial.println(coluna);
-    if(game[linha][coluna] == id){
-    
-    	sequences++;
-    }
+    if(game[linha][coluna] == id) sequences++;
     
     coluna++;
     linha++;
@@ -178,14 +174,12 @@ int verifica_diagonal_direita_esquerda(){
   
   Serial.println("DDE");
   while(linha != 3){
+
     Serial.print(linha);
     Serial.print(" | ");
     Serial.println(coluna);
-    if(game[linha][coluna] == id){
-    	
-    	sequences++;
-    }
-    
+
+    if(game[linha][coluna] == id) sequences++;
     coluna--;
     linha++;
   }
@@ -196,26 +190,23 @@ int verifica_diagonal_direita_esquerda(){
 
 
 bool vitoria(){
-	Serial.println("VITORIA VALIDADO");
-  bool resultado = false;
-  for(int i=0; i<3;i++){
-	
-    if (verifica_linhas(i) == 3 || verifica_colunas(i) == 3){
-      	resultado = true;
+    Serial.println("VITORIA VALIDADO");
+    bool resultado = false;
+    for(int i=0; i<3;i++){
+        if (verifica_linhas(i) == 3 
+        || verifica_colunas(i) == 3) resultado = true;
     }
-      
-  }
-  if( verifica_diagonal_esquerda_direita() == 3|| verifica_diagonal_direita_esquerda() == 3){
-    resultado = true;
-  }
-  
-  return resultado;
+    if( verifica_diagonal_esquerda_direita() == 3
+    || verifica_diagonal_direita_esquerda() == 3) resultado = true;
+    
+    
+    return resultado;
 }
 
 
 bool empate(){
 
-  int column = 0;
+  int column = 0; 
   int row = 0;
   bool stop = false;
   bool result = true;
@@ -245,116 +236,117 @@ bool empate(){
 
 
 void resetar_partida(){
- if(key != NO_KEY){
-       
-           for(int i = 0; i<10;i++){
-           display1.setPixelColor(i, display1.Color(0, 0, 0));
-           }
-   for(int i = 0; i<3; i++){
-   
-     for(int j=0;j<3;j++){
-     	game[i][j] = 0;
-     }
-   }
-    
+    if(key != NO_KEY){
+        for(int i = 0; i<10;i++){
+            display1.setPixelColor(i, display1.Color(0, 0, 0));
+        }
+        for(int i = 0; i<3; i++){
+            for(int j=0;j<3;j++){
+                game[i][j] = 0;
+            }
+        }
+        
     }
 }
 
 
+// STATE MACHINE FUNCTIONS
 
+void ocioso(){
+    if(key != NO_KEY) STATE = INICIO;
+    delay(500);
+}
+
+
+void inicio(){
+    if(id == 1){ 
+        int start = random(1,2);
+        if (start == 1) STATE = VEZ1;
+        else STATE = VEZ2; 
+    }else{
+        // wait receive state
+    }
+}
+
+
+void vez1(){
+
+    if(id == 1){
+            
+        if(key != NO_KEY){
+                if(jogar()){
+                
+                    if(vitoria()){ STATE = VITORIA1; }
+                    else if(empate()) STATE = EMPATE;
+                    else switch_vez();
+
+                }else Serial.println("JOGADA INVALIDA");
+            }
+        
+        } 
+        delay(500);
+}
+
+
+void vitoria1(){
+    Serial.println("JOGADOR 1 VENCEU");
+    Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
+    if(key != NO_KEY) resetar_partida();
+
+}
+
+
+void vez2(){
+    if(id == 2){ 
+        key = keypad.getKey();
+            if(key != NO_KEY){
+                jogar();
+                if(vitoria()) STATE = VITORIA2;
+                else if(empate()) STATE = EMPATE;
+                else switch_vez();	
+        }
+    }
+}
+
+
+void vitoria2(){
+    Serial.println("JOGADOR 1 VENCEU");
+    Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
+   	resetar_partida();
+
+}
+
+void empate_state(){
+    Serial.println("PARTIDA EMPATADA");
+    Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
+   	resetar_partida(); 
+    STATE = OCIOSO;
+
+}
 void brain(){
   
   switch(STATE){
   
-  case OCIOSO:
-    if(key != NO_KEY){
-    STATE = INICIO;
-    }
-    delay(500); break;
-  case INICIO:
-    if(id == 1){ 
-    	int start = random(1,2);
-    	if (start == 1) STATE = VEZ1;
-      	else STATE = VEZ2; 
-    }
-    else{
-    // wait receive state
-    }
-    break;
-    
-    
-  	case VEZ1:
-    if(id == 1){
-    	
-      if(key != NO_KEY){
-        if(jogar()){
-        
-        if(vitoria()){ STATE = VITORIA1; break; }
-        else if(empate()){
-          
-          	Serial.println("ESTADO = EMPATE");
-          	Serial.println(empate());
-          	STATE = EMPATE;
-        		
-        } else {
-        
-        	switch_vez();
-        }
-        }else {Serial.println("JOGADA INVALIDA");}
-        
-        	
-      }
-      
-    } 
-    delay(500);
-    break;
-    
-  
+    case OCIOSO:
+        ocioso();
+        break;
+    case INICIO:
+        inicio();
+        break;
+    case VEZ1:
+        vez1();
+        break;
   	case VITORIA1:
-    	Serial.println("JOGADOR 1 VENCEU");
-    
-    
-    	Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
-   		 if(key != NO_KEY) resetar_partida();
-         
-    
-    break;
-    	
+        vitoria1();
+        break;
   	case VEZ2:
-    	if(id == 2){
-    	 key = keypad.getKey();
-     	 if(key != NO_KEY){
-         jogar();
-           if(vitoria()){STATE = VITORIA1;}
-        else if(empate()){
-          Serial.print("ESTADO EMPATE: ");
-          Serial.println(empate());
-          STATE = EMPATE;
-        		
-        }
-        
-        	
-      }
-        }
-          
-          break;
-      
+    	vez2();
+        break;
   	case VITORIA2:
-          Serial.println("JOGADOR 1 VENCEU");
-    
-    
-    	Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
-   		resetar_partida();
-          break;
-    
-          
+        vitoria2();
+        break;
     case EMPATE:
-          Serial.println("PARTIDA EMPATADA");
-    
-    
-    	Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
-   		resetar_partida(); 
-    	STATE = OCIOSO;
+        empate_state();
     	break;
   }
   
@@ -369,16 +361,15 @@ void setup(){
  display1.begin();
 }
 
-void loop()
-{
-  
+void loop(){
+
   Serial.print("ESTADO: ");
   Serial.println(STATE);
   key = keypad.getKey();
  
   brain();
   display1.show();
-  
+
   delay(500);
   
 }
