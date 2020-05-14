@@ -9,7 +9,7 @@ using namespace std;
 #define RxPin 3
 
 char c;
-
+String recData;
 
 SoftwareSerial MySerial = SoftwareSerial(RxPin, TxPin);
 
@@ -67,7 +67,35 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
 
 // FUNÇÕES DE COMUNICAÇÃO
 
+void filter_string(){
+    int pos = 0;
+    String string = recData;
+    String tempString = "";
+    int after_delimiter = 20;
+  while(pos != after_delimiter+5){
 
+    if(string[pos] == '|') after_delimiter = pos;
+    else if(pos > after_delimiter) tempString += recData[pos];
+    
+    pos++;
+  }
+
+  recData = tempString;
+
+
+
+}
+
+void transmitting(String data){
+    recData = "";
+    recData = ".. |" + data;
+    Serial.println("Transmitting: " + recData);
+    MySerial.println(recData);
+
+
+
+
+}
 void receiver(){
     delay(1000);
     if(MySerial.available() > 0) {
