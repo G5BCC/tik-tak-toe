@@ -28,9 +28,9 @@ enum {
 Adafruit_NeoPixel display1 = Adafruit_NeoPixel(length_game, display_pin, NEO_GRB + NEO_KHZ800);
 
 int game[3][3] = {
-  {0,0,0},
-  {0,0,0},
-  {0,0,0}
+  {2,2,2},
+  {2,2,2},
+  {2,2,0}
 };
 
 
@@ -45,7 +45,7 @@ byte rowPins[3] = {9, 8, 7}; //connect to the row pinouts of the keypad
 byte colPins[3] = {6, 5, 4}; //connect to the column pinouts of the keypad
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
-void jogar(){
+bool jogar(){
 	
   
   Serial.print(key);
@@ -53,43 +53,52 @@ void jogar(){
    
   	case '1':
     	display1.setPixelColor(0, display1.Color(rl, gl, bl));
+    if(game[0][0] == 0) {game[0][0] = id; return true;}
+    	return false;
     
-    	keys[0][0] = id;
     	break;
     case '2':
     	display1.setPixelColor(1, display1.Color(rl, gl, bl));
     
-    	keys[0][1] = id;
+    	if(game[0][0] == 0) {game[0][0] = id; return true;}
+    	return false;
     	break;
     
     case '3':
     	display1.setPixelColor(2, display1.Color(rl, gl, bl));
-    	keys[0][2] = id;
+    	if(game[0][1] == 0) {game[0][0] = id; return true;}
+    	return false;
     	break;
     case '4':
     	display1.setPixelColor(3, display1.Color(rl, gl, bl));
-    	keys[1][0] = id;
+    	if(game[0][2] == 0) {game[0][1] = id; return true;}
+    	return false;
     	break;
     case '5':
     	display1.setPixelColor(4, display1.Color(rl, gl, bl));
-    	keys[1][1] = id;
+    	if(game[1][1] == 0) {game[1][1] = id; return true;}
+    	return false;
     	break;
     case '6':
     	display1.setPixelColor(5, display1.Color(rl, gl, bl));
-    	keys[1][2] = id;
+    	if(game[0][2] == 0) {game[0][1] = id; return true;}
     	break;
     case '7':
     	display1.setPixelColor(6, display1.Color(rl, gl, bl));
-    	keys[2][0] = id;
+    	if(game[2][0] == 0) {game[2][0] = id; return true;}
+    	return false;
     	break;
     case '8':
     	display1.setPixelColor(7, display1.Color(rl, gl, bl));
-    	keys[2][1] = id;
+    	if(game[2][1] == 0) {game[2][1] = id; return true;}
+    	return false;
     	break;
     case '9':
     	display1.setPixelColor(8, display1.Color(rl, gl, bl));
-    	keys[2][2] = id;
+    	if(game[0][2] == 0) {game[0][1] = id; return true;}
+    	return false;
     	break;
+  
     	
   }
 }
@@ -106,23 +115,34 @@ void switch_vez(){
 
 int verifica_linhas(int linha){
 	int sequences = 0;
+  Serial.println("LINHAS");
   for(int i = 0; i<3;i++){
-  	
+  	Serial.print(linha);
+    Serial.print(" | ");
+    Serial.println(i);
     if(game[linha][i] == id){
+      
+      	
     	sequences++;
     }
   }
+  Serial.println(sequences);
   return sequences;
 }
 
 int verifica_colunas(int coluna){
 	int sequences = 0;
+  Serial.println("COLUNAS");
   for(int i = 0; i<3;i++){
   	
+    Serial.print(i);
+    Serial.print(" | ");
+    Serial.println(coluna);
     if(game[i][coluna] == id){
     	sequences++;
     }
   }
+  Serial.println(sequences);
   return sequences;
 }
 
@@ -130,7 +150,12 @@ int verifica_diagonal_esquerda_direita(){
 	int sequences = 0;
   	int coluna = 0;
   	int linha = 0;
+  Serial.println("DED");
   while(linha != 3){
+    
+    Serial.print(linha);
+    Serial.print(" | ");
+    Serial.println(coluna);
     if(game[linha][coluna] == id){
     
     	sequences++;
@@ -140,7 +165,7 @@ int verifica_diagonal_esquerda_direita(){
     linha++;
   }
  		
-  
+  Serial.println(sequences);
   return sequences;
 
 
@@ -150,48 +175,72 @@ int verifica_diagonal_direita_esquerda(){
 	int sequences = 0;
   	int coluna = 2;
   	int linha = 0;
+  
+  Serial.println("DDE");
   while(linha != 3){
+    Serial.print(linha);
+    Serial.print(" | ");
+    Serial.println(coluna);
     if(game[linha][coluna] == id){
-    
+    	
     	sequences++;
     }
     
     coluna--;
     linha++;
   }
- 		
-  
+ Serial.print("SEQUENCIA: ");
+  Serial.println(sequences);
   return sequences;
 }
 
 
 bool vitoria(){
-
+	Serial.println("VITORIA VALIDADO");
+  bool resultado = false;
   for(int i=0; i<3;i++){
 	
     if (verifica_linhas(i) == 3 || verifica_colunas(i) == 3){
-      	return true;
+      	resultado = true;
     }
       
   }
   if( verifica_diagonal_esquerda_direita() == 3|| verifica_diagonal_direita_esquerda() == 3){
-    return true;
+    resultado = true;
   }
-  return false;
+  
+  return resultado;
 }
 
 
 bool empate(){
 
-
-  for(int i =0; i<3;i++){
-    for(int j = 0; j<3; j++){
-      if (game[i][j] == 0){
-        return false;
+  int column = 0;
+  int row = 0;
+  bool stop = false;
+  bool result = true;
+  Serial.println("----EMPATE-----");
+  while(!stop){
+    column = 0;
+    
+  	while(!stop){
+  	Serial.print(row);
+    Serial.print(" | ");
+    Serial.println(column);
+      if(game[row][column] == 0){
+      
+      	stop = true;
+        result = false;
       }
-    }
+      column++;
+      if(column==3) break;
+  
+  	}
+    row++;
+    if(row == 3) break;
   }
-  return true;
+
+ return result;
 }
 
 
@@ -218,6 +267,9 @@ void brain(){
   switch(STATE){
   
   case OCIOSO:
+    if(key != NO_KEY){
+    STATE = INICIO;
+    }
     delay(500); break;
   case INICIO:
     if(id == 1){ 
@@ -233,18 +285,28 @@ void brain(){
     
   	case VEZ1:
     if(id == 1){
-    	 key = keypad.getKey();
+    	
       if(key != NO_KEY){
-         jogar();
-        if(vitoria()) STATE = VITORIA1;
+        if(jogar()){
+        
+        if(vitoria()){ STATE = VITORIA1; break; }
         else if(empate()){
-        	STATE = EMPATE;	
+          
+          	Serial.println("ESTADO = EMPATE");
+          	Serial.println(empate());
+          	STATE = EMPATE;
+        		
+        } else {
+        
+        	switch_vez();
         }
+        }else {Serial.println("JOGADA INVALIDA");}
         
         	
       }
       
     } 
+    delay(500);
     break;
     
   
@@ -263,13 +325,17 @@ void brain(){
     	 key = keypad.getKey();
      	 if(key != NO_KEY){
          jogar();
-        if(vitoria()) STATE = VITORIA1;
+           if(vitoria()){STATE = VITORIA1;}
         else if(empate()){
-        	STATE = EMPATE;	
+          Serial.print("ESTADO EMPATE: ");
+          Serial.println(empate());
+          STATE = EMPATE;
+        		
         }
         
         	
       }
+        }
           
           break;
       
@@ -280,7 +346,7 @@ void brain(){
     	Serial.println("PRECIONE QUALQUER TECLA PARA RESETA");
    		resetar_partida();
           break;
-    }
+    
           
     case EMPATE:
           Serial.println("PARTIDA EMPATADA");
@@ -295,6 +361,9 @@ void brain(){
 
 }
   
+  
+  
+  
 void setup(){
   Serial.begin(9600);
  display1.begin();
@@ -302,9 +371,14 @@ void setup(){
 
 void loop()
 {
-  key = keypad.getKey();
- if(key != NO_KEY) jogar();
   
+  Serial.print("ESTADO: ");
+  Serial.println(STATE);
+  key = keypad.getKey();
+ 
+  brain();
   display1.show();
+  
   delay(500);
+  
 }
