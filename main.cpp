@@ -4,6 +4,9 @@
 
 using namespace std;
 
+
+
+
 // P2P Variaveis
 #define TxPin 2
 #define RxPin 3
@@ -31,7 +34,6 @@ Adafruit_NeoPixel display1 = Adafruit_NeoPixel(length_game, display_pin, NEO_GRB
 // ESTADOS
 enum {
 	OCIOSO,
-  	INICIO,
   	VEZ1,
   	VITORIA1,
   	VEZ2,
@@ -67,20 +69,36 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
 
 // FUNÇÕES DE COMUNICAÇÃO
 
-void filter_string(){
+
+/*
+NOTAS SOBRE A COMUNICAÇÃO ENTRE OS ARDUINOS:
+
+
+
+ O código lê do 5 ao 8 caracter de transmissão
+
+ O restante é descartado após a "|", 
+ 
+ Portanto, mesmo que a informação não precise de 4 caracteres para a transmissão, deve-se preencher os 4.
+
+
+
+
+*/
+String filter_string(String data, char delimiter){
     int pos = 0;
-    String string = recData;
+    String string = data;
     String tempString = "";
     int after_delimiter = 20;
   while(pos != after_delimiter+5){
 
-    if(string[pos] == '|') after_delimiter = pos;
-    else if(pos > after_delimiter) tempString += recData[pos];
+    if(string[pos] == delimiter) after_delimiter = pos;
+    else if(pos > after_delimiter) tempString += data[pos];
     
     pos++;
   }
 
-  recData = tempString;
+  return tempString;
 
 
 
@@ -104,87 +122,68 @@ void receiver(){
                 c = MySerial.read();
                 recData += c;
             }
-            filter_string();
-            Serial.println("SS Data received = " + recData);
+            recData = filter_string(recData, '|');
+            Serial.println("SS Data received =" + recData);
         }
   
 
 }
 
 
-void check_sender(String data){
-	receiver();
-  	if(recData == data) transmitting("OOOOOOOOOOOO");
-  	else transmitting(data);
-  
-}
-
-
-void check_receiver(){
-	transmitting(recData);
-  delay(4000);
-  	receiver();
-  for(int i = 0; i<8; i++){
-  
-    if(recData[i] == 'O'){ 
-      
-      
-      Serial.println("RECEBIMENTO OK");
-      }
-    else receiver();
-  }
-}
 // FUNÇÕES GERAIS   
 
 bool jogar(){
   Serial.print(key);
+
+  if(STATE == VEZ1) jogador = 1;
+  else if(STATE == VEZ2) jogador = 2;
   switch(key){
    
         case '1':
             display1.setPixelColor(0, display1.Color(rl, gl, bl));
-        if(game[0][0] == 0) {game[0][0] = id; return true;}
+        if(game[0][0] == 0) {game[0][0] = jogador; return true;}
             return false;
         
             break;
         case '2':
             display1.setPixelColor(1, display1.Color(rl, gl, bl));
         
-            if(game[0][0] == 0) {game[0][0] = id; return true;}
+            if(game[0][0] == 0) {game[0][0] = jogador; return true;}
             return false;
             break;
         
         case '3':
             display1.setPixelColor(2, display1.Color(rl, gl, bl));
-            if(game[0][1] == 0) {game[0][0] = id; return true;}
+            if(game[0][1] == 0) {game[0][0] = jogador; return true;}
             return false;
             break;
         case '4':
             display1.setPixelColor(3, display1.Color(rl, gl, bl));
-            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            if(game[0][2] == 0) {game[0][1] = jogador; return true;}
             return false;
             break;
         case '5':
             display1.setPixelColor(4, display1.Color(rl, gl, bl));
-            if(game[1][1] == 0) {game[1][1] = id; return true;}
+            if(game[1][1] == 0) {game[1][1] = jogador; return true;}
             return false;
             break;
         case '6':
             display1.setPixelColor(5, display1.Color(rl, gl, bl));
-            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            if(game[0][2] == 0) {game[0][1] = jogador; return true;}
             break;
         case '7':
             display1.setPixelColor(6, display1.Color(rl, gl, bl));
-            if(game[2][0] == 0) {game[2][0] = id; return true;}
+            if(game[2][0] == 0) {game[2][0] = jogador; return true;}
             return false;
             break;
         case '8':
             display1.setPixelColor(7, display1.Color(rl, gl, bl));
-            if(game[2][1] == 0) {game[2][1] = id; return true;}
+            if(game[2][1] == 0) {game[2][1] = jogador; return true;}
             return false;
             break;
         case '9':
             display1.setPixelColor(8, display1.Color(rl, gl, bl));
-            if(game[0][2] == 0) {game[0][1] = id; return true;}
+            if(game[0][2] == 0) {game[0][1] = jogador; return true;}
             return false;
             break;
     
@@ -335,24 +334,31 @@ void resetar_partida(){
 
 void ocioso(){
 
-    if(key != NO_KEY) STATE = INICIO;
+      if(key != NO_KEY && id == 1){
+         if(id == 1){ 
+
+        int start = random(1,2);
+        if (start == 1){
+            transmitting("SV:1");
+            delay(3000);
+            STATE = VEZ1;
+            }
+        else{ 
+            transmitting("SV:2");
+            delay(3000);
+             STATE = VEZ2;
+            }
+    }
+    }
+    else if(id == 2){
+        receiver();
+        if(recData == "SV:1") STATE = VEZ1;
+        else if(recData == "SV:2") STATE = VEZ2;
+    }
     delay(500);
 
 }
 
-
-void inicio(){
-
-    if(id == 1){ 
-
-        int start = random(1,2);
-        if (start == 1) STATE = VEZ1;
-        else STATE = VEZ2; 
-
-    }else{
-        // wait receive state
-    }
-}
 
 
 void vez1(){
@@ -364,12 +370,25 @@ void vez1(){
                 
                     if(vitoria()){ STATE = VITORIA1; }
                     else if(empate()) STATE = EMPATE;
-                    else switch_vez();
+                    else{
+                        transmitting("J1:" + key);
+                        delay(2000);
+                        switch_vez();
+                        
+                        }
 
                 }else Serial.println("JOGADA INVALIDA");
             }
         
-        } 
+        } else{
+            receiver();
+            if(recData[0] + recData[1] == 'J1'){
+                recData = filter_string(recData, ':')
+
+
+            }
+
+        }
         delay(500);
 }
 
@@ -415,9 +434,6 @@ void brain(){
     
         case OCIOSO:
             ocioso();
-            break;
-        case INICIO:
-            inicio();
             break;
         case VEZ1:
             vez1();
