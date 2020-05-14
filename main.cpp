@@ -18,7 +18,7 @@ int display_pin = 13;
 int length_game = 9;
 
 int id = 2; // ID do arduino
-
+int jogador;
 // CORES
 int r1 = 255; int g1 = 0; int b1 = 0; // cor player 1
 int r2 = 0; int g2 = 255; int b2 = 0; // cor player 2
@@ -60,35 +60,36 @@ byte colPins[3] = {6, 5, 4};
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, 3, 3 );
 
 // FUNÇÕES DE COMUNICAÇÃO
-void filter_string(){
+String filter_string(String data, char delimiter){
     int pos = 0;
-    String string = recData;
+    String string = data;
     String tempString = "";
     int after_delimiter = 20;
 
     while (pos != after_delimiter+5){
-        if (string[pos] == '|') {
+        if (string[pos] == delimiter) {
             after_delimiter = pos;
         }
         else if (pos > after_delimiter) {
-            tempString += recData[pos];
+            tempString += data[pos];
         }
 
         pos++;
     }
 
-    recData = tempString;
+    return tempString;
 }
 
 void transmitting(String data){
     recData = "";
-    recData = ".. |" + data;
+    recData = "........|" + data;
     Serial.println("Transmitting: " + recData);
     MySerial.println(recData);
+    delay(3000);
 }
 
 void receiver(){
-    delay(1000);
+    delay(2000);
     if (MySerial.available() > 0) {
         recData = "";
 
@@ -97,7 +98,7 @@ void receiver(){
             recData += c;
         }
 
-        filter_string();
+        recData = filter_string(recData, '|');
         Serial.println("SS Data received =" + recData);
     }
 }
@@ -106,7 +107,7 @@ void receiver(){
 // FUNÇÕES GERAIS   
 bool jogar(){
     Serial.print(key);
-
+    
     int red; int green; int blue;
     if(STATE == VEZ1){
         jogador = 1;
@@ -150,8 +151,8 @@ bool jogar(){
             
             case '3':
                                 
-                if (game[0][1] == 0) {
-                    game[0][0] = jogador;
+                if (game[0][2] == 0) {
+                    game[0][2] = jogador;
 
                     display1.setPixelColor(2, display1.Color(red, green, blue));
 
@@ -232,7 +233,7 @@ bool jogar(){
                     game[2][2] = jogador;
 
                     display1.setPixelColor(8, display1.Color(red, green, blue));
-                    
+
                     return true;
                 }
 
@@ -242,7 +243,7 @@ bool jogar(){
 }
 
 void switch_vez(){
-    if (id == 1) {
+    if (STATE == VEZ1) {
         STATE = VEZ2;
     }
     else {
@@ -253,19 +254,16 @@ void switch_vez(){
 int verifica_linhas(int linha){
     int sequences = 0;
 
-    Serial.println("LINHAS");
 
     for (int i = 0; i < 3; i++){
-        Serial.print(linha);
-        Serial.print(" | ");
-        Serial.println(i);
+
 
         if (game[linha][i] == id) {
             sequences++;
         }
     }
 
-    Serial.println(sequences);
+
 
     return sequences;
 }
@@ -273,19 +271,17 @@ int verifica_linhas(int linha){
 int verifica_colunas(int coluna){
     int sequences = 0;
 
-    Serial.println("COLUNAS");
+
 
     for (int i = 0; i < 3; i++){
-        Serial.print(i);
-        Serial.print(" | ");
-        Serial.println(coluna);
+
 
         if (game[i][coluna] == id) {
             sequences++;
         }
     }
 
-    Serial.println(sequences);
+
 
     return sequences;
 }
@@ -295,12 +291,9 @@ int verifica_diagonal_esquerda_direita(){
     int coluna = 0;
     int linha = 0;
 
-    Serial.println("DED");
 
     while (linha != 3){
-        Serial.print(linha);
-        Serial.print(" | ");
-        Serial.println(coluna);
+
 
         if (game[linha][coluna] == id) {
             sequences++;
@@ -310,7 +303,6 @@ int verifica_diagonal_esquerda_direita(){
         linha++;
     }
             
-    Serial.println(sequences);
 
     return sequences;
 }
@@ -320,12 +312,10 @@ int verifica_diagonal_direita_esquerda(){
     int coluna = 2;
     int linha = 0;
     
-    Serial.println("DDE");
+
 
     while (linha != 3) {
-        Serial.print(linha);
-        Serial.print(" | ");
-        Serial.println(coluna);
+   
 
         if (game[linha][coluna] == id) {
             sequences++;
@@ -335,16 +325,11 @@ int verifica_diagonal_direita_esquerda(){
         linha++;
     }
 
-    Serial.print("SEQUENCIA: ");
-    Serial.println(sequences);
-
     return sequences;
 }
 
 bool vitoria(){
     bool resultado = false;
-
-    Serial.println("VITORIA VALIDADO");
     
     for (int i=0; i < 3; i++) {
         if (verifica_linhas(i) == 3 || verifica_colunas(i) == 3) {
@@ -418,24 +403,25 @@ void ocioso(){
             int start = random(1, 3);
             
             if (start == 1) {
-                transmitting("V:01");
+                transmitting("S:V1");
                 delay(3000);
                 STATE = VEZ1;
             }
             else { 
-                transmitting("V:02");
+                transmitting("S:V2");
                 delay(3000);
                 STATE = VEZ2;
             }
         }
     }
     else if (id == 2) {
+
         receiver();
 
-        if (recData == "V:01") {
+        if (recData == "S:V1") {
             STATE = VEZ1;
         }
-        else if (recData == "V:02") {
+        else if (recData == "S:V2") {
             STATE = VEZ2;
         }
     }
@@ -447,25 +433,53 @@ void vez1(){
     if (id == 1) {     
         if (key != NO_KEY) {
             if (jogar()) {
+                String sender = "J2:";
+                sender += key;
+                transmitting(sender);
+                delay(3000);
                 if(vitoria()) {
                     STATE = VITORIA1;
+                    transmitting("S:VT");
+                    
                 }
                 else if (empate()) {
                     STATE = EMPATE;
+                    transmitting("S:EM");
+                    
                 }
                 else {
+                    transmitting("S:V2");
                     switch_vez();
+                    
+                    
                 }
-            }
-            else {
-                Serial.println("JOGADA INVALIDA");
             }
         }
     } else if (id == 2){
 
-        jogar();
+        receiver();
+        if(recData[0] =='J' && recData[1] == '2'){
+            key = filter_string(recData, ':')[0];
+            jogar();
+            delay(4000);
+            
+            receiver();
+            if(recData == "S:VT"){
+                STATE = VITORIA1;
+            }
+            
+                else if(recData == "S:EM"){
+                    STATE = EMPATE;
+                }
+                else if(recData == "S:V2"){
+                    switch_vez();
+                }
+
+        }
+        
     }
     delay(500);
+    
 }
 
 
@@ -479,23 +493,56 @@ void vitoria1() {
 }
 
 void vez2() {
-    if (id == 2) { 
-        key = keypad.getKey();
-
-        if(key != NO_KEY){
-            jogar();
-
-            if (vitoria()) {
-                STATE = VITORIA2;
-            }
-            else if (empate()) {
-                STATE = EMPATE;
-            }
-            else {
-                switch_vez();
+    if (id == 2) {     
+        if (key != NO_KEY) {
+            if (jogar()) {
+                String sender = "J2:";
+                sender += key;
+                transmitting(sender);
+                delay(3000);
+                if(vitoria()) {
+                    STATE = VITORIA1;
+                    transmitting("S:VT");
+                    
+                }
+                else if (empate()) {
+                    STATE = EMPATE;
+                    transmitting("S:EM");
+                    
+                }
+                else {
+                    transmitting("S:V2");
+                    switch_vez();
+                    
+                    
+                }
             }
         }
+    } else if (id == 1){
+
+        receiver();
+        if(recData[0] =='J' && recData[1] == '2'){
+            key = filter_string(recData, ':')[0];
+            jogar();
+            delay(4000);
+            
+            receiver();
+            if(recData == "S:VT"){
+                STATE = VITORIA1;
+            }
+            
+                else if(recData == "S:EM"){
+                    STATE = EMPATE;
+                }
+                else if(recData == "S:V2"){
+                    switch_vez();
+                }
+
+        }
+        
     }
+    delay(500);
+    
 }
 
 void vitoria2(){
