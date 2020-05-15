@@ -66,7 +66,7 @@ String filter_string(String data, char delimiter){
     String tempString = "";
     int after_delimiter = 20;
 
-    while (pos != after_delimiter+5){
+    while (pos != after_delimiter+4){
         if (string[pos] == delimiter) {
             after_delimiter = pos;
         }
@@ -82,10 +82,10 @@ String filter_string(String data, char delimiter){
 
 void transmitting(String data){
     recData = "";
-    recData = "........|" + data;
+    recData = "...|" + data;
     Serial.println("Transmitting: " + recData);
     MySerial.println(recData);
-    delay(3000);
+    delay(1000);
 }
 
 void receiver(){
@@ -403,12 +403,12 @@ void ocioso(){
             int start = random(1, 3);
             
             if (start == 1) {
-                transmitting("S:V1");
+                transmitting("V:1");
                 delay(3000);
                 STATE = VEZ1;
             }
             else { 
-                transmitting("S:V2");
+                transmitting("V:2");
                 delay(3000);
                 STATE = VEZ2;
             }
@@ -418,10 +418,10 @@ void ocioso(){
 
         receiver();
 
-        if (recData == "S:V1") {
+        if (recData == "V:1") {
             STATE = VEZ1;
         }
-        else if (recData == "S:V2") {
+        else if (recData == "V:2") {
             STATE = VEZ2;
         }
     }
@@ -433,22 +433,22 @@ void vez1(){
     if (id == 1) {     
         if (key != NO_KEY) {
             if (jogar()) {
-                String sender = "J2:";
+                String sender = "J:";
                 sender += key;
                 transmitting(sender);
                 delay(3000);
                 if(vitoria()) {
                     STATE = VITORIA1;
-                    transmitting("S:VT");
+                    transmitting("S:V");
                     
                 }
                 else if (empate()) {
                     STATE = EMPATE;
-                    transmitting("S:EM");
+                    transmitting("S:E");
                     
                 }
                 else {
-                    transmitting("S:V2");
+                    transmitting("V:2");
                     switch_vez();
                     
                     
@@ -458,20 +458,20 @@ void vez1(){
     } else if (id == 2){
 
         receiver();
-        if(recData[0] =='J' && recData[1] == '2'){
+        if(recData[0] =='J'){
             key = filter_string(recData, ':')[0];
             jogar();
             delay(4000);
             
             receiver();
-            if(recData == "S:VT"){
+            if(recData == "S:V"){
                 STATE = VITORIA1;
             }
             
-                else if(recData == "S:EM"){
+                else if(recData == "S:E"){
                     STATE = EMPATE;
                 }
-                else if(recData == "S:V2"){
+                else if(recData == "V:2"){
                     switch_vez();
                 }
 
@@ -496,22 +496,22 @@ void vez2() {
     if (id == 2) {     
         if (key != NO_KEY) {
             if (jogar()) {
-                String sender = "J2:";
+                String sender = "J:";
                 sender += key;
                 transmitting(sender);
                 delay(3000);
                 if(vitoria()) {
                     STATE = VITORIA1;
-                    transmitting("S:VT");
+                    transmitting("S:V");
                     
                 }
                 else if (empate()) {
                     STATE = EMPATE;
-                    transmitting("S:EM");
+                    transmitting("S:E");
                     
                 }
                 else {
-                    transmitting("S:V2");
+                    transmitting("V:2");
                     switch_vez();
                     
                     
@@ -521,7 +521,7 @@ void vez2() {
     } else if (id == 1){
 
         receiver();
-        if(recData[0] =='J' && recData[1] == '2'){
+        if(recData[0] =='J'){
             key = filter_string(recData, ':')[0];
             jogar();
             delay(4000);
@@ -531,10 +531,10 @@ void vez2() {
                 STATE = VITORIA1;
             }
             
-                else if(recData == "S:EM"){
+                else if(recData == "S:E"){
                     STATE = EMPATE;
                 }
-                else if(recData == "S:V2"){
+                else if(recData == "V:2"){
                     switch_vez();
                 }
 
