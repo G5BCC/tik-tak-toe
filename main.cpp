@@ -126,10 +126,10 @@ bool jogar(){
     switch(key){
             case '1':               
                 if (game[0][0] == 0) {
+                    game[0][0] = jogador;
 
                     display1.setPixelColor(0, display1.Color(red, green, blue));
 
-                    game[0][0] = jogador;
                     return true;
                 }
 
@@ -138,8 +138,8 @@ bool jogar(){
 
             case '2':
 
-                if (game[0][0] == 0) {
-                    game[0][0] = jogador;
+                if (game[0][1] == 0) {
+                    game[0][1] = jogador;
 
                     display1.setPixelColor(1, display1.Color(red, green, blue));
             
@@ -164,8 +164,8 @@ bool jogar(){
 
             case '4':
                 
-                if (game[0][2] == 0) {
-                    game[0][1] = jogador;
+                if (game[1][0] == 0) {
+                    game[1][0] = jogador;
 
                     display1.setPixelColor(3, display1.Color(red, green, blue));
 
@@ -190,8 +190,8 @@ bool jogar(){
 
             case '6':
                 
-                if (game[0][2] == 0) {
-                    game[0][1] = jogador;
+                if (game[1][2] == 0) {
+                    game[1][2] = jogador;
 
                     display1.setPixelColor(5, display1.Color(red, green, blue));
 
